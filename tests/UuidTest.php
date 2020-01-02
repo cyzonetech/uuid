@@ -768,62 +768,98 @@ class UuidTest extends TestCase
 
     /**
      * Tests that generated UUID's using timestamp last COMB are sequential
+     *
+     * @dataProvider provideSequentialTimestampLastCombs
      */
-    public function testUuid4TimestampLastComb(): void
+    public function testUuid4TimestampLastComb(string $previous, string $next): void
     {
-        $mock = $this->getMockBuilder(RandomGeneratorInterface::class)->getMock();
-        $mock->expects($this->any())
-            ->method('generate')
-            ->willReturnCallback(function ($length) {
-                // Makes first fields of UUIDs equal
-                return str_pad('', $length, '0');
-            });
+        $this->assertGreaterThan($previous, $next);
+    }
+
+    /**
+     * Generates 1000 timestamp-last COMBs that are supposed to be sequential
+     *
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingTraversableTypeHintSpecification
+     */
+    public function provideSequentialTimestampLastCombs(): array
+    {
+        $randomGenerator = Mockery::mock(RandomGeneratorInterface::class);
+        $randomGenerator->shouldReceive('generate')->andReturnUsing(function ($length) {
+            // Makes first fields of UUIDs equal
+            return hex2bin(str_pad('', $length * 2, '0'));
+        });
 
         $factory = new UuidFactory();
-        $generator = new CombGenerator($mock, $factory->getNumberConverter());
+        $generator = new CombGenerator($randomGenerator, $factory->getNumberConverter());
         $codec = new TimestampLastCombCodec($factory->getUuidBuilder());
         $factory->setRandomGenerator($generator);
         $factory->setCodec($codec);
 
         $previous = $factory->uuid4();
 
+        $combs = [];
+
         for ($i = 0; $i < 1000; $i++) {
             usleep(100);
             $uuid = $factory->uuid4();
-            $this->assertGreaterThan($previous->toString(), $uuid->toString());
+
+            $combs[] = [
+                'previous' => $previous->toString(),
+                'next' => $uuid->toString(),
+            ];
 
             $previous = $uuid;
         }
+
+        return $combs;
     }
 
     /**
      * Tests that generated UUID's using timestamp first COMB are sequential
+     *
+     * @dataProvider provideSequentialTimestampFirstCombs
      */
-    public function testUuid4TimestampFirstComb(): void
+    public function testUuid4TimestampFirstComb(string $previous, string $next): void
     {
-        $mock = $this->getMockBuilder(RandomGeneratorInterface::class)->getMock();
-        $mock->expects($this->any())
-            ->method('generate')
-            ->willReturnCallback(function ($length) {
-                // Makes first fields of UUIDs equal
-                return str_pad('', $length, '0');
-            });
+        $this->assertGreaterThan($previous, $next);
+    }
+
+    /**
+     * Generates 1000 timestamp-first COMBs that are supposed to be sequential
+     *
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingTraversableTypeHintSpecification
+     */
+    public function provideSequentialTimestampFirstCombs(): array
+    {
+        $randomGenerator = Mockery::mock(RandomGeneratorInterface::class);
+        $randomGenerator->shouldReceive('generate')->andReturnUsing(function ($length) {
+            // Makes first fields of UUIDs equal
+            return hex2bin(str_pad('', $length * 2, '0'));
+        });
 
         $factory = new UuidFactory();
-        $generator = new CombGenerator($mock, $factory->getNumberConverter());
+        $generator = new CombGenerator($randomGenerator, $factory->getNumberConverter());
         $codec = new TimestampFirstCombCodec($factory->getUuidBuilder());
         $factory->setRandomGenerator($generator);
         $factory->setCodec($codec);
 
         $previous = $factory->uuid4();
 
+        $combs = [];
+
         for ($i = 0; $i < 1000; $i++) {
             usleep(100);
             $uuid = $factory->uuid4();
-            $this->assertGreaterThan($previous->toString(), $uuid->toString());
+
+            $combs[] = [
+                'previous' => $previous->toString(),
+                'next' => $uuid->toString(),
+            ];
 
             $previous = $uuid;
         }
+
+        return $combs;
     }
 
     /**
@@ -1361,18 +1397,17 @@ class UuidTest extends TestCase
     /**
      * Iterates over a 3600-second period and tests to ensure that, for each
      * second in the period, the 32-bit-Moontoast and 64-bit versions of the UUID match
+     *
+     * @dataProvider provideOneHourPeriod
      */
-    public function test32BitMoontoastMatch64BitForOneHourPeriod(): void
+    public function test32BitMoontoastMatch64BitForOneHourPeriod(int $currentTime, int $usec): void
     {
         $this->skipIfNoMoontoastMath();
         $this->skip64BitTest();
 
-        $currentTime = strtotime('2012-12-11T00:00:00+00:00');
-        $endTime = $currentTime + 3600;
-
         $timeOfDay = new FixedTimeProvider([
             'sec' => $currentTime,
-            'usec' => 0,
+            'usec' => $usec,
             'minuteswest' => 0,
             'dsttime' => 0,
         ]);
@@ -1387,45 +1422,35 @@ class UuidTest extends TestCase
 
         $factory = new UuidFactory($featureSet);
 
-        while ($currentTime <= $endTime) {
-            foreach ([0, 50000, 250000, 500000, 750000, 999999] as $usec) {
-                $timeOfDay->setSec($currentTime);
-                $timeOfDay->setUsec($usec);
+        $uuid32 = $smallIntFactory->uuid1(0x00007ffffffe, 0x1669);
+        $uuid64 = $factory->uuid1(0x00007ffffffe, 0x1669);
 
-                $uuid32 = $smallIntFactory->uuid1(0x00007ffffffe, 0x1669);
-                $uuid64 = $factory->uuid1(0x00007ffffffe, 0x1669);
+        $this->assertTrue(
+            $uuid32->equals($uuid64),
+            'Breaks at ' . gmdate('r', $currentTime)
+                . "; 32-bit: {$uuid32->toString()}, 64-bit: {$uuid64->toString()}"
+        );
 
-                $this->assertTrue(
-                    $uuid32->equals($uuid64),
-                    'Breaks at ' . gmdate('r', $currentTime)
-                        . "; 32-bit: {$uuid32->toString()}, 64-bit: {$uuid64->toString()}"
-                );
-
-                // Assert that the time matches
-                $testTime = round($currentTime + ($usec / 1000000));
-                $this->assertEquals($testTime, $uuid64->getDateTime()->getTimestamp());
-                $this->assertEquals($testTime, $uuid32->getDateTime()->getTimestamp());
-            }
-
-            $currentTime++;
-        }
+        // Assert that the time matches
+        $testTime = round($currentTime + ($usec / 1000000));
+        $this->assertEquals($testTime, $uuid64->getDateTime()->getTimestamp());
+        $this->assertEquals($testTime, $uuid32->getDateTime()->getTimestamp());
     }
 
     /**
      * Iterates over a 3600-second period and tests to ensure that, for each
      * second in the period, the 32-bit-GMP and 64-bit versions of the UUID match
+     *
+     * @dataProvider provideOneHourPeriod
      */
-    public function test32BitGmpMatch64BitForOneHourPeriod(): void
+    public function test32BitGmpMatch64BitForOneHourPeriod(int $currentTime, int $usec): void
     {
         $this->skipIfNoGmp();
         $this->skip64BitTest();
 
-        $currentTime = strtotime('2012-12-11T00:00:00+00:00');
-        $endTime = $currentTime + 3600;
-
         $timeOfDay = new FixedTimeProvider([
             'sec' => $currentTime,
-            'usec' => 0,
+            'usec' => $usec,
             'minuteswest' => 0,
             'dsttime' => 0,
         ]);
@@ -1440,28 +1465,49 @@ class UuidTest extends TestCase
 
         $factory = new UuidFactory($featureSet);
 
+        $uuid32 = $smallIntFactory->uuid1(0x00007ffffffe, 0x1669);
+        $uuid64 = $factory->uuid1(0x00007ffffffe, 0x1669);
+
+        $this->assertTrue(
+            $uuid32->equals($uuid64),
+            'Breaks at ' . gmdate('r', $currentTime)
+            . "; 32-bit: {$uuid32->toString()}, 64-bit: {$uuid64->toString()}"
+        );
+
+        // Assert that the time matches
+        $testTime = round($currentTime + ($usec / 1000000));
+        $this->assertEquals($testTime, $uuid64->getDateTime()->getTimestamp());
+        $this->assertEquals($testTime, $uuid32->getDateTime()->getTimestamp());
+    }
+
+    /**
+     * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingTraversableTypeHintSpecification
+     */
+    public function provideOneHourPeriod(): array
+    {
+        if (PHP_INT_SIZE === 4) {
+            // We don't want to print out thousands and thousands of skipped tests
+            // on 32-bit systems, so we'll return an array with a single value
+            // so that the test will show up once as skipped in the output.
+            return [['currentTime' => 0, 'usec' => 0]];
+        }
+
+        $currentTime = strtotime('2012-12-11T00:00:00+00:00');
+        $endTime = $currentTime + 3600;
+
+        $period = [];
+
         while ($currentTime <= $endTime) {
             foreach ([0, 50000, 250000, 500000, 750000, 999999] as $usec) {
-                $timeOfDay->setSec($currentTime);
-                $timeOfDay->setUsec($usec);
-
-                $uuid32 = $smallIntFactory->uuid1(0x00007ffffffe, 0x1669);
-                $uuid64 = $factory->uuid1(0x00007ffffffe, 0x1669);
-
-                $this->assertTrue(
-                    $uuid32->equals($uuid64),
-                    'Breaks at ' . gmdate('r', $currentTime)
-                    . "; 32-bit: {$uuid32->toString()}, 64-bit: {$uuid64->toString()}"
-                );
-
-                // Assert that the time matches
-                $testTime = round($currentTime + ($usec / 1000000));
-                $this->assertEquals($testTime, $uuid64->getDateTime()->getTimestamp());
-                $this->assertEquals($testTime, $uuid32->getDateTime()->getTimestamp());
+                $period[] = [
+                    'currentTime' => $currentTime,
+                    'usec' => $usec,
+                ];
             }
-
             $currentTime++;
         }
+
+        return $period;
     }
 
     public function testCalculateUuidTimeThrownException(): void
