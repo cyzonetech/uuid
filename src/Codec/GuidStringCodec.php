@@ -29,6 +29,8 @@ class GuidStringCodec extends StringCodec
      * @throws InvalidUuidStringException
      *
      * @inheritDoc
+     *
+     * @psalm-pure
      */
     public function decode(string $encodedUuid): UuidInterface
     {
@@ -41,6 +43,8 @@ class GuidStringCodec extends StringCodec
      * @throws InvalidArgumentException if $bytes is an invalid length
      *
      * @inheritDoc
+     *
+     * @psalm-pure
      */
     public function decodeBytes(string $bytes): UuidInterface
     {
@@ -52,6 +56,8 @@ class GuidStringCodec extends StringCodec
      * @param string[] $fields The fields that comprise this UUID
      *
      * @return string[]
+     *
+     * @psalm-pure
      */
     private function swapBytes(array $fields): array
     {

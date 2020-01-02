@@ -588,19 +588,11 @@ class Uuid implements UuidInterface
 
     public function getVariant(): ?int
     {
-        if (!$this->fields instanceof Rfc4122FieldsInterface) {
-            return null;
-        }
-
         return $this->fields->getVariant();
     }
 
     public function getVersion(): ?int
     {
-        if (!$this->fields instanceof Rfc4122FieldsInterface) {
-            return null;
-        }
-
         return $this->fields->getVersion();
     }
 

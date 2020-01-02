@@ -88,7 +88,7 @@ final class GuidFields implements Rfc4122FieldsInterface
             )
         );
 
-        return $hex[1] ?? '';
+        return (string) ($hex[1] ?? '');
     }
 
     public function getTimeMid(): string
@@ -102,7 +102,7 @@ final class GuidFields implements Rfc4122FieldsInterface
             )
         );
 
-        return $hex[1] ?? '';
+        return (string) ($hex[1] ?? '');
     }
 
     public function getTimeHiAndVersion(): string
@@ -116,7 +116,7 @@ final class GuidFields implements Rfc4122FieldsInterface
             )
         );
 
-        return $hex[1] ?? '';
+        return (string) ($hex[1] ?? '');
     }
 
     public function getClockSeqHiAndReserved(): string
@@ -138,7 +138,7 @@ final class GuidFields implements Rfc4122FieldsInterface
     {
         $parts = unpack('n*', $this->bytes);
 
-        return ($parts[4] >> 4) & 0x00f;
+        return ((int) $parts[4] >> 4) & 0x00f;
     }
 
     private function isCorrectVariant(): bool

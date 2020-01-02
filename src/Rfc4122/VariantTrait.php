@@ -19,6 +19,8 @@ use Ramsey\Uuid\Uuid;
 
 /**
  * Provides common functionality for handling the variant, as defined by RFC 4122
+ *
+ * @psalm-immutable
  */
 trait VariantTrait
 {
@@ -55,7 +57,7 @@ trait VariantTrait
         // three characters (three most-significant bits) to determine the
         // variant.
         $binary = str_pad(
-            decbin($parts[5]),
+            decbin((int) $parts[5]),
             16,
             '0',
             STR_PAD_LEFT

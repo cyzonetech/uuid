@@ -108,7 +108,7 @@ final class Rfc4122Fields implements Rfc4122FieldsInterface
     {
         $parts = unpack('n*', $this->bytes);
 
-        return $parts[4] >> 12;
+        return (int) $parts[4] >> 12;
     }
 
     private function isCorrectVariant(): bool

@@ -30,6 +30,8 @@ use Ramsey\Uuid\Guid\GuidFields;
  * > 5, where the canonical fields do not correspond to the content of the UUID.
  *
  * @link https://en.wikipedia.org/wiki/Universally_unique_identifier#Variants UUID Variants on Wikipedia
+ *
+ * @psalm-immutable
  */
 class Guid extends Uuid implements UuidInterface
 {

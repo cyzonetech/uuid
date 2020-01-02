@@ -21,6 +21,8 @@ namespace Ramsey\Uuid\Rfc4122;
  * set to zero.
  *
  * @link https://tools.ietf.org/html/rfc4122#section-4.1.7 RFC 4122, § 4.1.7: Nil UUID
+ *
+ * @psalm-immutable
  */
 trait NilTrait
 {
