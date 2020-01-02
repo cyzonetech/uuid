@@ -16,6 +16,7 @@ namespace Ramsey\Uuid;
 
 use Ramsey\Uuid\Builder\DefaultUuidBuilder;
 use Ramsey\Uuid\Builder\DegradedUuidBuilder;
+use Ramsey\Uuid\Builder\GuidBuilder;
 use Ramsey\Uuid\Builder\UuidBuilderInterface;
 use Ramsey\Uuid\Codec\CodecInterface;
 use Ramsey\Uuid\Codec\GuidStringCodec;
@@ -145,7 +146,7 @@ class FeatureSet
 
         $this->numberConverter = $this->buildNumberConverter();
         $this->timeConverter = $this->buildTimeConverter();
-        $this->builder = $this->buildUuidBuilder();
+        $this->builder = $this->buildUuidBuilder($useGuids);
         $this->codec = $this->buildCodec($useGuids);
         $this->nodeProvider = $this->buildNodeProvider();
         $this->randomGenerator = $this->buildRandomGenerator();
@@ -319,9 +320,15 @@ class FeatureSet
 
     /**
      * Returns a UUID builder configured for this environment
+     *
+     * @param bool $useGuids Whether to build UUIDs using the GuidStringCodec
      */
-    private function buildUuidBuilder(): UuidBuilderInterface
+    private function buildUuidBuilder(bool $useGuids = false): UuidBuilderInterface
     {
+        if ($this->is64BitSystem() && $useGuids) {
+            return new GuidBuilder($this->numberConverter, $this->timeConverter);
+        }
+
         if ($this->is64BitSystem()) {
             return new DefaultUuidBuilder($this->numberConverter, $this->timeConverter);
         }

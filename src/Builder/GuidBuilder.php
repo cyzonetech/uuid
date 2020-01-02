@@ -17,13 +17,13 @@ namespace Ramsey\Uuid\Builder;
 use Ramsey\Uuid\Codec\CodecInterface;
 use Ramsey\Uuid\Converter\NumberConverterInterface;
 use Ramsey\Uuid\Converter\TimeConverterInterface;
-use Ramsey\Uuid\DegradedUuid;
+use Ramsey\Uuid\Guid;
 use Ramsey\Uuid\UuidInterface;
 
 /**
- * DegradedUuidBuilder builds instances of DegradedUuid
+ * GuidBuilder builds instances of Guid
  */
-class DegradedUuidBuilder implements UuidBuilderInterface
+class GuidBuilder implements UuidBuilderInterface
 {
     /**
      * @var NumberConverterInterface
@@ -37,7 +37,7 @@ class DegradedUuidBuilder implements UuidBuilderInterface
 
     /**
      * @param NumberConverterInterface $numberConverter The number converter to
-     *     use when constructing the DegradedUuid
+     *     use when constructing the Guid
      * @param TimeConverterInterface $timeConverter The time converter to use
      *     for converting timestamps extracted from a UUID to Unix timestamps
      */
@@ -50,17 +50,17 @@ class DegradedUuidBuilder implements UuidBuilderInterface
     }
 
     /**
-     * Builds and returns a DegradedUuid
+     * Builds and returns a Guid
      *
-     * @param CodecInterface $codec The codec to use for building this DegradedUuid instance
-     * @param string[] $fields An array of fields from which to construct a DegradedUuid instance;
+     * @param CodecInterface $codec The codec to use for building this Guid instance
+     * @param string[] $fields An array of fields from which to construct a Guid instance;
      *     see {@see \Ramsey\Uuid\UuidInterface::getFieldsHex()} for array structure.
      *
-     * @return DegradedUuid The DegradedUuidBuild returns an instance of Ramsey\Uuid\DegradedUuid
+     * @return Guid The GuidBuilder returns an instance of Ramsey\Uuid\Guid
      */
     public function build(CodecInterface $codec, array $fields): UuidInterface
     {
-        return new DegradedUuid(
+        return new Guid(
             $fields,
             $this->numberConverter,
             $codec,

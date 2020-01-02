@@ -50,6 +50,10 @@ interface UuidInterface extends JsonSerializable, Serializable
      * The result is true if and only if the argument is not null, is a UUID
      * object, has the same variant, and contains the same value, bit for bit,
      * as the UUID.
+     *
+     * @param object|null $other An object to test for equality with this UUID
+     *
+     * @return bool True if the other object is equal to this UUID
      */
     public function equals(?object $other): bool;
 
@@ -218,7 +222,7 @@ interface UuidInterface extends JsonSerializable, Serializable
      *
      * @link http://tools.ietf.org/html/rfc4122#section-4.1.1 RFC 4122, § 4.1.1: Variant
      */
-    public function getVariant(): int;
+    public function getVariant(): ?int;
 
     /**
      * Returns the version
