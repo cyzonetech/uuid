@@ -134,7 +134,7 @@ final class GuidFields implements Rfc4122FieldsInterface
         return bin2hex(substr($this->bytes, 10));
     }
 
-    public function getVersion(): int
+    public function getVersion(): ?int
     {
         $parts = unpack('n*', $this->bytes);
 

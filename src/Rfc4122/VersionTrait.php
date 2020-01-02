@@ -22,7 +22,7 @@ trait VersionTrait
     /**
      * Returns the version
      */
-    abstract public function getVersion(): int;
+    abstract public function getVersion(): ?int;
 
     /**
      * Returns true if these fields represent a nil UUID

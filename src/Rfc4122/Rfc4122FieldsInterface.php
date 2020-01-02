@@ -87,7 +87,7 @@ interface Rfc4122FieldsInterface extends FieldsInterface
      * 4. Randomly generated UUID
      * 5. Name-based UUID hashed with SHA-1
      */
-    public function getVersion(): int;
+    public function getVersion(): ?int;
 
     /**
      * Returns true if these fields represent a nil UUID
