@@ -15,6 +15,7 @@ declare(strict_types=1);
 namespace Ramsey\Uuid;
 
 use Ramsey\Uuid\Builder\DefaultUuidBuilder;
+use Ramsey\Uuid\Builder\DegradedGuidBuilder;
 use Ramsey\Uuid\Builder\DegradedUuidBuilder;
 use Ramsey\Uuid\Builder\GuidBuilder;
 use Ramsey\Uuid\Builder\UuidBuilderInterface;
@@ -331,6 +332,10 @@ class FeatureSet
 
         if ($this->is64BitSystem()) {
             return new DefaultUuidBuilder($this->numberConverter, $this->timeConverter);
+        }
+
+        if ($useGuids) {
+            return new DegradedGuidBuilder($this->numberConverter, $this->timeConverter);
         }
 
         return new DegradedUuidBuilder($this->numberConverter, $this->timeConverter);
